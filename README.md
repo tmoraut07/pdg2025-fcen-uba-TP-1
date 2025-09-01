@@ -1,5 +1,5 @@
 ** pdg2025-fcen-uba-TP-1 **
-** 2025 Procesamiento de Geometría Digital **
+** 2025 Procesamiento de Geometría Digital (Digital Geometry Processing) **
 
 Tarea 1
 
