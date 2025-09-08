@@ -38,16 +38,19 @@
 #include "Faces.hpp"
   
 Faces::Faces(const int nV, const vector<int>& coordIndex) {
-  this->_indices = coordIndex;
-  int maxIndex = *max_element(_indices.begin(), _indices.end());
-
-  if(nV < maxIndex + 1){
-    this-> _numVertices = maxIndex + 1;
-  
-  } else {
-      this->_numVertices = nV;
+    _indices = coordIndex;
+    _cacheIndices = vector<int>;
+    _numVertices = nV;
+    _cacheIndices.push_back(0);
+    int nextFace = 1;
+    for (int i =0 ; i< _coordIndex.size(); i++){
+        if(coordIndex[i] < 0){
+            _cacheIndices.push_back(i + 1);
+            _indices[i] = - nextFace;
+            nextFace++;
+        }
     }
-
+    _indices[_indices.size() - 1] = -nextFace;
 }
 
 int Faces::getNumberOfVertices() const {
@@ -55,17 +58,11 @@ int Faces::getNumberOfVertices() const {
 }  
 
 int Faces::getNumberOfFaces() const {
-  int numberOfFaces = 0;
-  for (int i = 0; i < _indices.size(); i++){
-    if (_indices[i] == -1){
-      numberOfFaces++;
-    }
-  }
-  return numberOfFaces;
+    return _cacheIndices.size();
 }
 
 int Faces::getNumberOfCorners() const {
-  return this->_indices.size();
+  return _indices.size();
 }
 
 int Faces::getFaceSize(const int iF) const {
@@ -73,37 +70,20 @@ int Faces::getFaceSize(const int iF) const {
     if(iF < 0 || iF >= numFaces) 
         return -1;
 
-    int faceCounter = 0;
-    int index = 0;
-    while(index < _indices.size() && faceCounter < iF){
-      if(_indices[index] == -1)
-        faceCounter++;
-      index++;
+    int faceIndex = getFaceFirstCorner(iF);
+    int faceSizeCounter = 0;
+    while(coordIndex[faceIndex + faceSizeCounter] >= 0){
+        faceSizeCounter++;
     }
-
-    int faceSize = 0;
-    while(index < _indices.size() && _indices[index] != -1){
-      faceSize++;
-      index++;
-    }
-    return faceSize;
+    return faceSizeCounter;
 }
 
 int Faces::getFaceFirstCorner(const int iF) const {
     int numFaces = getNumberOfFaces();
-    if(iF < 0 || iF >= numFaces) 
+    if(iF < 0 || iF >= numFaces)
         return -1;
 
-    int faceCounter = 0;
-    for(int i = 0; i < _indices.size(); ++i) {
-        if(faceCounter == iF) {
-            return i; 
-        }
-        if(_indices[i] == -1) {
-            faceCounter++;
-        }
-    }
-
+    int faceIndex = _cacheIndices[iF];
     return -1; 
 }
 
@@ -112,11 +92,11 @@ int Faces::getFaceVertex(const int iF, const int j) const {
   if(iF < 0 || iF >= numFaces) 
         return -1;
 
-  int firstCornerIndex = getFaceFirstCorner(iF);
+  int faceIndex = getFaceFirstCorner(iF);
   int faceSize = getFaceSize(iF);
 
   if(j <= faceSize && j >= 0){
-    return _indices[firstCornerIndex + j - 1];
+    return _indices[firstCornerIndex + j];
   }
   else return -1;
 }
@@ -134,5 +114,19 @@ int Faces::getCornerFace(const int iC) const {
 }
 
 int Faces::getNextCorner(const int iC) const {
-  return -1;
+    if (iC >= _indices.size()){
+        return -1;
+    }
+
+
+    if (_indices[iC] < 0){
+        return -1;
+    }
+
+    int nextCorner = _indices[iC + 1];
+    if(nextCorner < 0){
+        return _cacheIndices[-nextCorner - 1];
+    } else{
+        return iC + 1;
+    }
 }

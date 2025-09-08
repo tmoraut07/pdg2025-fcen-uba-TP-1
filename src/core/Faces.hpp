@@ -91,8 +91,10 @@ public:
 
 private:
   int _numVertices;
-  vector<int> _indices;
-  bool validIndex(const int iF);
+  vector<int> _indices; // hacer que en vez de -1 diga -(numero de cara)
+  // agregar vector que apunte a cada principio de cara
+  vector<int> _cacheIndices;
+
   // TODO
 
 };
