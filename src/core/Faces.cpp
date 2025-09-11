@@ -96,7 +96,7 @@ int Faces::getFaceVertex(const int iF, const int j) const {
   int faceSize = getFaceSize(iF);
 
   if(j <= faceSize && j >= 0){
-    return _indices[firstCornerIndex + j];
+    return _indices[faceIndex + j];
   }
   else return -1;
 }

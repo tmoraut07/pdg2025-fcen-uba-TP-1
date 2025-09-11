@@ -75,13 +75,30 @@ bool LoaderStl::load(const char* filename, SceneGraph& wrl) {
 
       // create the scene graph structure :
       // 1) the SceneGraph should have a single Shape node a child
+      Shape *shape = new Shape;
+      wrl.addChild(shape);
+
       // 2) the Shape node should have an Appearance node in its appearance field
+      Appearance *appearence = new Appearance;
+      wrl.addChild(appearence);
       // 3) the Appearance node should have a Material node in its material field
+
+      Material *material = new Material;
+      appearence->setMaterial(material);
+
       // 4) the Shape node should have an IndexedFaceSet node in its geometry node
+      IndexedFaceSet *geometry = new IndexedFaceSet;
+      shape->setGeometry(geometry);
 
       // from the IndexedFaceSet
       // 5) get references to the coordIndex, coord, and normal arrays
-      // 6) set the normalPerVertex variable to false (i.e., normals per face)  
+      vector<int>& coordIndex = geometry->getCoordIndex();
+      vector<float>& coord = geometry->getCoord();
+      vector<float>& normalVectors = geometry->getNormal();
+
+      // 6) set the normalPerVertex variable to false (i.e., normals per face)
+      geometry->setNormalPerVertex(false);
+
 
       // the file should contain a list of triangles in the following format
 
@@ -94,12 +111,17 @@ bool LoaderStl::load(const char* filename, SceneGraph& wrl) {
       // endfacet
 
       // - run an infinite loop to parse all the faces
-      // - write a private method to parse each face within the loop
-      // - the method should return true if successful, and false if not
-      // - if your method returns tru
-      //     update the normal, coord, and coordIndex variables
-      // - if your method returns false
-      //     throw an StrException explaining why the method failed
+      while(true){
+        // - write a private method to parse each face within the loop
+        
+        // - the method should return true if successful, and false if not
+        // - if your method returns tru
+        //     update the normal, coord, and coordIndex variables
+        // - if your method returns false
+        //     throw an StrException explaining why the method failed
+
+      }
+      
 
     }
 

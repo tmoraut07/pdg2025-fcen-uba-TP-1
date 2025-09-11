@@ -53,12 +53,29 @@ bool SaverStl::save(const char* filename, SceneGraph& wrl) const {
     // Check these conditions
 
     // 1) the SceneGraph should have a single child
+    auto children = wrl.getChildren();
+    IndexedFaceSet *geometry = NULL;
+    for(auto child : children){
+
     // 2) the child should be a Shape node
+      if (child->isShape()){
     // 3) the geometry of the Shape node should be an IndexedFaceSet node
+        geometry = (IndexedFaceSet*) ((Shape*)child)->getGeometry();
+      }
+    }
+    // if geometry is not an IndexedFaceSet return false || trow exception ^
+
 
     // - construct an instance of the Faces class from the IndexedFaceSet
+    vector<int>& coordIndex = geometry->getCoordIndex();
+    vector<float>& coord = geometry->getCoord();
+    vector<float>&normal = geometry->getNormal();
+    int numVertex = geometry->getNumberOfCorners();
+
     // - remember to delete it when you are done with it (if necessary)
     //   before returning
+
+    Faces meshFaces = Faces(numVertex, coordIndex);
 
     // 4) the IndexedFaceSet should be a triangle mesh
     // 5) the IndexedFaceSet should have normals per face
