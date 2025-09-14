@@ -53,29 +53,33 @@ bool SaverStl::save(const char* filename, SceneGraph& wrl) const {
     // Check these conditions
 
     // 1) the SceneGraph should have a single child
+    if(wrl.getNumberOfChildren() != 1) return false;
+    
+    // 2) the child should be a Shape node
     auto children = wrl.getChildren();
     IndexedFaceSet *geometry = NULL;
     for(auto child : children){
-
-    // 2) the child should be a Shape node
       if (child->isShape()){
     // 3) the geometry of the Shape node should be an IndexedFaceSet node
         geometry = (IndexedFaceSet*) ((Shape*)child)->getGeometry();
       }
     }
-    // if geometry is not an IndexedFaceSet return false || trow exception ^
-
+    if (!geometry->isIndexedFaceSet()) return false;
 
     // - construct an instance of the Faces class from the IndexedFaceSet
+
     vector<int>& coordIndex = geometry->getCoordIndex();
     vector<float>& coord = geometry->getCoord();
-    vector<float>&normal = geometry->getNormal();
+    vector<float>& normal = geometry->getNormal();
+    vector<int>& normalIdx = geometry->getNormalIndex();
     int numVertex = geometry->getNumberOfCorners();
 
-    // - remember to delete it when you are done with it (if necessary)
+    Faces meshFaces = Faces(numVertex, coordIndex);
+
+    Vec3f vecBuffer;
+    // - remember to delete it when you are done with it (if  necessary)
     //   before returning
 
-    Faces meshFaces = Faces(numVertex, coordIndex);
 
     // 4) the IndexedFaceSet should be a triangle mesh
     // 5) the IndexedFaceSet should have normals per face
@@ -88,13 +92,29 @@ bool SaverStl::save(const char* filename, SceneGraph& wrl) const {
       // if set, use ifs->getName()
       // otherwise use filename,
       // but first remove directory and extension
+      const string& name = wrl.getName().c_str();
 
       fprintf(fp,"solid %s\n",filename);
+      int faceNum = 0;
+      while(meshFaces.getFaceVertex(faceNum, 0) != -1){
+        int normalNum;
+        if(normalIdx.empty()) normalNum = faceNum;
+        else normalNum = normalIdx[faceNum];
 
-      // TODO ...
-      // for each face {
-      //   ...
-      // }
+        vecBuffer.x = normal[3 * normalNum];
+        vecBuffer.y = normal[3 * normalNum + 1];
+        vecBuffer.z = normal[3 * normalNum + 2];
+
+        for(int corner = 0; corner < 3; corner ++){
+          int vertex = meshFaces.getFaceVertex(faceNum, corner);
+          vecBuffer.x = coord[3 * vertex];
+          vecBuffer.y = coord[3 * vertex + 1];
+          vecBuffer.z = coord[3 * vertex + 2];
+        }
+
+        faceNum++;
+      }
+
       
       fclose(fp);
       success = true;
