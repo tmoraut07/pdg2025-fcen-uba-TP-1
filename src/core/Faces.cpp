@@ -39,11 +39,11 @@
   
 Faces::Faces(const int nV, const vector<int>& coordIndex) {
     _indices = coordIndex;
-    _cacheIndices = vector<int>;
+    vector<int> _cacheIndices;
     _numVertices = nV;
     _cacheIndices.push_back(0);
     int nextFace = 1;
-    for (int i =0 ; i< _coordIndex.size(); i++){
+    for (int i =0 ; i < _indices.size(); i++){
         if(coordIndex[i] < 0){
             _cacheIndices.push_back(i + 1);
             _indices[i] = - nextFace;
@@ -72,7 +72,7 @@ int Faces::getFaceSize(const int iF) const {
 
     int faceIndex = getFaceFirstCorner(iF);
     int faceSizeCounter = 0;
-    while(coordIndex[faceIndex + faceSizeCounter] >= 0){
+    while(_indices[faceIndex + faceSizeCounter] >= 0){
         faceSizeCounter++;
     }
     return faceSizeCounter;
@@ -117,7 +117,6 @@ int Faces::getNextCorner(const int iC) const {
     if (iC >= _indices.size()){
         return -1;
     }
-
 
     if (_indices[iC] < 0){
         return -1;
