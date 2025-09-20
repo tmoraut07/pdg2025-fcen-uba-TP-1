@@ -47,6 +47,7 @@ class LoaderStl : public Loader {
 private:
 
   const static char* _ext;
+  bool parseFace(Tokenizer &tkn, vector<float> &normal, vector<int> &coordIndex, vector<float> &coord, uint faceNumber);
 
 public:
 

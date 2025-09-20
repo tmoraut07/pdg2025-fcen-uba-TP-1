@@ -49,6 +49,42 @@
 
 const char* LoaderStl::_ext = "stl";
 
+bool LoaderStl::parseFace(Tokenizer &tkn, vector<float> &normal, vector<int> &coordIndex, vector<float> &coord, uint faceNumber){
+  bool success;
+  float floatBuffer;
+  Vec3f vectorBuffer;
+
+  if(!tkn.expecting("facet") || !tkn.expecting("normal")) return false;
+
+  success = tkn.getVec3f(vectorBuffer);
+  if(!success) throw StrException("Invalid file");
+
+  for(int i = 0; i < 3; i++){
+    normal.push_back(vectorBuffer.x);
+    normal.push_back(vectorBuffer.y);
+    normal.push_back(vectorBuffer.z);
+  }
+
+  if(!(tkn.expecting("outer") && tkn.expecting("loop"))) throw StrException("Invalid file");
+
+  for(int i = 0 ; i < 3; i++){
+    if (!tkn.expecting("vertex")) throw StrException("Invalid file");
+
+    for(int j = 0; j < 3; j++){
+      success = tkn.getFloat(floatBuffer);
+      if(success == false) throw StrException("Invalid file");
+      coord.push_back(floatBuffer);
+    }
+    coordIndex.push_back(3 * faceNumber + i);
+  }
+  coordIndex.push_back(-1);
+  tkn.expecting("endloop");
+  tkn.expecting("endfacet");
+
+  return true;
+}
+
+
 bool LoaderStl::load(const char* filename, SceneGraph& wrl) {
   bool success = false;
 
@@ -96,7 +132,7 @@ bool LoaderStl::load(const char* filename, SceneGraph& wrl) {
       vector<float>& coord = geometry->getCoord();
       vector<float>& normalVectors = geometry->getNormal();
       float floatBuffer;
-      Vec3f vecBuffer;
+      Vec3f vectorBuffer;
 
 
       // 6) set the normalPerVertex variable to false (i.e., normals per face)
@@ -117,51 +153,15 @@ bool LoaderStl::load(const char* filename, SceneGraph& wrl) {
       int faceNum = 0;
       while(true){
 
-         // - write a private method to parse each face within the loop
-        
-        // - the method should return true if successful, and false if not
-        // - if your method returns tru
-        //     update the normal, coord, and coordIndex variables
-        // - if your method returns false
-        //     throw an StrException explaining why the method failed
-
-        if(!(tkn.expecting("solid") && tkn.expecting("normal"))){
+        success = parseFace(tkn, normalVectors, coordIndex, coord, faceNum);
+        if(success == false){
           if(faceNum > 0) break;
-          else throw StrException("File type not valid");
+          else throw StrException("Invalid file");
         }
-
-        if(!tkn.getVec3f(vecBuffer)) throw StrException("File type not valid");
-
-        for (int i = 0; i < 3; ++i) {
-          normalVectors.push_back(vecBuffer.x);
-          normalVectors.push_back(vecBuffer.y);
-          normalVectors.push_back(vecBuffer.z);
-        }
-
-        if(!(tkn.expecting("outer") && tkn.expecting("loop"))) {
-            throw StrException("File type not valid");
-        }
-
-         for (int i = 0; i < 3; ++i) {
-                if (!tkn.expecting("vertex")) {
-                    throw StrException("File type not valid");
-                }
-        for (int j = 0; j < 3; ++j) {
-            bool success = tkn.getFloat(floatBuffer);
-            if (!success) {
-                throw StrException("File type not valid");
-            }
-            coord.push_back(floatBuffer);
-        }
-        coordIndex.push_back(3 * faceNum + i);
-        }
-        coordIndex.push_back(-1);
-        tkn.expecting("endloop");
-        tkn.expecting("endfacet");
 
         faceNum++;
       }
-      
+      success = true;
 
     }
 
